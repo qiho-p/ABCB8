@@ -42,7 +42,7 @@ p <- DimPlot(object = bao_myeloid, reduction = "umap",repel=TRUE,label=FALSE,gro
 ggsave(height=3.5,width=5,"/mnt/data/user_data/yiman/project/zjn_abcb8_screening/github_code/Dimplot_Bao.patient.normal.BM.myeloid.final.png")
 
 ```
-![Fig1F_Dimplot](.\Fig1_images\Dimplot_Bao.patient.normal.BM.myeloid.final.png)
+![Fig1F_Dimplot](./Fig1_images/Dimplot_Bao.patient.normal.BM.myeloid.final.png)
 
 #### Fig1G
 ```
@@ -104,7 +104,7 @@ stat_cor(color="black", method = c("pearson"))
 ggsave(height=5,width=5,"/mnt/data/user_data/yiman/project/zjn_abcb8_screening/github_code/Cyto.ABCB8.Bao.patient.normal.BM.myeloid.70.seed6.png")
 
 ```
-![Fig1G](.\Fig1_images\Cyto.ABCB8.Bao.patient.normal.BM.myeloid.70.seed6.png)
+![Fig1G](./Fig1_images/Cyto.ABCB8.Bao.patient.normal.BM.myeloid.70.seed6.png)
 
 
 #### Fig1H
@@ -144,7 +144,7 @@ p <- ggboxplot(all_data,x="cell_type",y="ABCB8",fill="cell_type",group="cell_typ
 ggsave(height=4,width=4,"/mnt/data/user_data/yiman/project/zjn_abcb8_screening/github_code/boxplot.Bao.patient.normal.BM.myeloid.ABCB8.20.png")
 
 ```
-![Fig1H](.\Fig1_images\boxplot.Bao.patient.normal.BM.myeloid.ABCB8.20.png)
+![Fig1H](./Fig1_images/boxplot.Bao.patient.normal.BM.myeloid.ABCB8.20.png)
 
 
 
