@@ -42,7 +42,7 @@ p <- DimPlot(object = bao_myeloid, reduction = "umap",repel=TRUE,label=FALSE,gro
 ggsave(height=3.5,width=5,"/mnt/data/user_data/yiman/project/zjn_abcb8_screening/github_code/Dimplot_Bao.patient.normal.BM.myeloid.final.png")
 
 ```
-![Fig1F_Dimplot](./Fig1_images/Dimplot_Bao.patient.normal.BM.myeloid.final.png)
+<img src="./Fig1_images/Dimplot_Bao.patient.normal.BM.myeloid.final.png" alt="Fig1F_Dimplot" width="500" />
 
 #### Fig1G
 ```
@@ -104,7 +104,7 @@ stat_cor(color="black", method = c("pearson"))
 ggsave(height=5,width=5,"/mnt/data/user_data/yiman/project/zjn_abcb8_screening/github_code/Cyto.ABCB8.Bao.patient.normal.BM.myeloid.70.seed6.png")
 
 ```
-![Fig1G](./Fig1_images/Cyto.ABCB8.Bao.patient.normal.BM.myeloid.70.seed6.png)
+<img src="./Fig1_images/Cyto.ABCB8.Bao.patient.normal.BM.myeloid.70.seed6.png" alt="Fig1G" width="500" />
 
 
 #### Fig1H
@@ -144,12 +144,195 @@ p <- ggboxplot(all_data,x="cell_type",y="ABCB8",fill="cell_type",group="cell_typ
 ggsave(height=4,width=4,"/mnt/data/user_data/yiman/project/zjn_abcb8_screening/github_code/boxplot.Bao.patient.normal.BM.myeloid.ABCB8.20.png")
 
 ```
-![Fig1H](./Fig1_images/boxplot.Bao.patient.normal.BM.myeloid.ABCB8.20.png)
+<img src="./Fig1_images/boxplot.Bao.patient.normal.BM.myeloid.ABCB8.20.png" alt="Fig1H" width="500" />
+
+#### Fig1J
+
+
+```
+anno_data <- org.Mm.eg.db
+organism <- "mouse"
+#anno_data=org.Hs.eg.db
+#organism <- "hsa"
+load("/mnt/data/user_data/xiangyu/workshop/WORKFLOW_RNAseq/ebg_mm10.RData")
+load("/mnt/data/user_data/xiangyu/workshop/WORKFLOW_RNAseq/txdb_mm10.RData")
+
+all_sample <- read.csv("/mnt/data/user_data/yiman/workshop/RNAseq/Abcb8_zjn/basic_counts/all_sampletable.csv",row.names=1)
+setwd("/mnt/data/user_data/zlu/01_job/ZJN_Abcb8_cuttag/RNA_seq/RNA_seq_second_batch/1.mm10_star_out/")
+bamfiles <- BamFileList(as.vector(all_sample$sample), yieldSize=2000000)   
+seqinfo(bamfiles[1])
+register(MulticoreParam(workers=8))
+registered()
+se <- summarizeOverlaps(features=ebg, reads=bamfiles,
+mode="Union",
+singleEnd=FALSE,
+ignore.strand=TRUE,
+fragments=FALSE)
+colData(se) <- DataFrame(all_sample)  
+setwd("/mnt/data/user_data/yiman/workshop/RNAseq/Abcb8_zjn/basic_counts/")
+save(se,file="all_sample_se.RData")
+countdata <- assay(se)
+colnames(countdata) <- coldata$sample
+write.csv(countdata,"rawcounts_all.csv")
+
+rcount_all <- read.csv("/mnt/data/user_data/yiman/workshop/RNAseq/Abcb8_zjn/basic_counts/rawcounts_all.csv",row.names=1)
+ckt_rcounts <- rcount_all[,10:18] 
+ckit_info <- all_sample[10:18,]
+dds_ckit <- DESeqDataSetFromMatrix(countData = ckit_rcounts,
+                                 colData = ckit_info,
+                                 design = ~deal)
+dds_ckit <- DESeqDataSet(dds_ckit, design = ~deal)
+dds_ckit <- DESeq(dds_ckit)
+ckit_nom <- counts(dds_ckit, normalized=TRUE)
+ckit_nom <- as.data.frame(ckit_nom)
+write.csv(ckit_nom,file='/mnt/data/user_data/yiman/workshop/RNAseq/Abcb8_zjn/basic_counts/ckit_nom.csv')
+
+dds_ckit2 <- DESeqDataSetFromMatrix(countData = ckit_rcounts,
+                                 colData = ckit_info,
+                                 design = ~group)
+dds_ckit2 <- DESeqDataSet(dds_ckit2, design = ~group)
+dds_ckit2 <- DESeq(dds_ckit2)
+res_ckit_sh_ren <- results(dds_ckit2,contrast=c('group',"ckit_shA","ckit_shRen"),parallel=T)
+res_ckit_sh_ren <- as.data.frame(res_ckit_sh_ren)
+res_ckit_sh_ren$ENSEMBL <- mapIds(x = anno_data,
+                          keys = rownames(res_ckit_sh_ren),
+              keytype ="SYMBOL",
+              column ="ENSEMBL",
+              multiVals="first")
+res_ckit_sh_ren$entrez <- mapIds(x = anno_data,
+                          keys = rownames(res_ckit_sh_ren),
+              keytype ="SYMBOL",
+              column ="ENTREZID",
+              multiVals="first")
+res_ckit_sh_ren_all <- cbind(rcount_all[,c(10:18)],ckit_nom,res_ckit_sh_ren)
+write.csv(res_ckit_sh_ren_all,file='/mnt/data/user_data/yiman/workshop/RNAseq/Abcb8_zjn/DEG_out/res_ckit_sh_ren_all.csv')
+
+res_ckit_all <- read.csv(file='/mnt/data/user_data/yiman/workshop/RNAseq/Abcb8_zjn/DEG_out/res_ckit_sh_ren_all.csv',row.names=1)
+abcb8_ren_rna_dn <- subset(res_ckit_all,pvalue < 0.05 & log2FoldChange < -0.5)
+abcb8_ren_rna_dn <- unique(rownames(abcb8_ren_rna_dn))
+
+sha_ren_dn <- res_ckit_all[abcb8_ren_rna_dn,c(16:17,13:15,10:12,26)]
+colnames(sha_ren_dn) <- gsub("\\.1","",colnames(sha_ren_dn))
+
+sha_ren_dn <- na.omit(sha_ren_dn) 
+sha_ren_dn <- sha_ren_dn$entrez
+
+GOupres_1_all <- enrichGO(gene = sha_ren_dn, 
+             OrgDb = org.Mm.eg.db,
+              ont = "BP", 
+                 pvalueCutoff = 0.01, 
+                     pAdjustMethod = "BH", 
+                     qvalueCutoff = 0.01,
+                     minGSSize = 10, 
+                     maxGSSize = 500, 
+                     readable = TRUE, 
+                     pool = FALSE)
+library(enrichplot)
+write.csv(GOupres_1_all,'/mnt/data/user_data/yiman/workshop/RNAseq/Abcb8_zjn/figure/ckit_down_GO_BP.csv')
+
+GO_shA_down <- read.csv(row.names=1,'/mnt/data/user_data/yiman/workshop/RNAseq/Abcb8_zjn/figure/ckit_down_GO_BP.csv')
+GO_shA_down$Description <- as.character(GO_shA_down$Description)
+GO_shA_down$log10p <- -log10(GO_shA_down$p.adjust)
+GO_shA_down$label <- ""
+
+GO_shA_down[which(GO_shA_down$Description %in% c("leukocyte proliferation","mononuclear cell proliferation",
+  "lymphocyte differentiation","lymphocyte proliferation","regulation of leukocyte differentiation","regulation of hemopoiesis",
+  "T cell differentiation","myeloid leukocyte differentiation")),]$label <- GO_shA_down[which(GO_shA_down$Description %in% c("leukocyte proliferation","mononuclear cell proliferation",
+  "lymphocyte differentiation","lymphocyte proliferation","regulation of leukocyte differentiation","regulation of hemopoiesis",
+  "T cell differentiation","myeloid leukocyte differentiation")),]$Description
+GO_plot <- GO_shA_down[which(GO_shA_down$label != ""),]
+GO_plot[which(GO_plot$Count < 0),]$log10p <- -GO_plot[which(GO_plot$Count < 0),]$log10p
+
+p <- ggbarplot(GO_plot, x = "Description", y = "log10p",
+          fill = "lightblue",           # change fill color by mpg_level
+          sort.val = "asc",          # Sort the value in descending order
+          sort.by.groups = FALSE,     # Don't sort inside each group
+          x.text.angle = 0,          # Rotate vertically x axis texts
+          ylab = "-log10(padj)",
+          legend.title = "Enrichment Group",
+          rotate = TRUE,
+          ggtheme = theme_pubr()
+          )
+
+ggsave("/mnt/data/user_data/yiman/workshop/RNAseq/Abcb8_zjn/github_code/barplot.GO.shA_vs_shR.Fig1.png")
 
 
 
 
+```
+<img src="./Fig1_images/barplot.GO.shA_vs_shR.Fig1.png" alt="Fig1J" width="500" />
+
+#### Fig1K
+
+```
+ckit_sh_ren_gct <- res_ckit_sh_ren_all[,c(10:18,25)]
+ckit_sh_ren_gct <- na.omit(ckit_sh_ren_gct)
+write.csv(ckit_sh_ren_gct,file='/mnt/data/user_data/yiman/workshop/RNAseq/Abcb8_zjn/DEG_out/ckit_sh_ren_gct.csv')
+
+cd /mnt/data/user_data/yiman/workshop/RNAseq/Abcb8_zjn/DEG_out/GSEA/
+
+java -cp /mnt/data/user_data/xiangyu/programme/gsea/gsea-3.0.jar -Xmx20480m xtools.gsea.Gsea \
+-res ckit_sh_ren.gct \
+-cls ckit_all_ren.cls#ckit_shA_versus_ckit_shRen \
+-gmx /mnt/data/user_data/xiangyu/programme/gsea/msigdb_v7.1/msigdb_v7.1_GMTs/indivi_gmt/h.all.v7.1.symbols.gmt \
+-chip /mnt/data/user_data/xiangyu/programme/gsea/chip/ENSEMBL_mouse_gene.chip \
+-collapse true -mode Max_probe -norm meandiv -nperm 1000 -permute gene_set \
+-rnd_type no_balance -scoring_scheme weighted -rpt_label my_analysis \
+-metric Signal2Noise -sort real -order descending -include_only_symbols true \
+-make_sets true -median false -num 100 -plot_top_x 50 -rnd_seed timestamp \
+-save_rnd_lists false -set_max 500 -set_min 15 -zip_report false \
+-out ./ckit_shA_ren_h -gui false
+
+java -cp /mnt/data/user_data/xiangyu/programme/gsea/gsea-3.0.jar -Xmx20480m xtools.gsea.Gsea \
+-res ckit_sh_ren.gct \
+-cls ckit_all_ren.cls#ckit_shA_versus_ckit_shRen \
+-gmx /mnt/data/user_data/xiangyu/programme/gsea/msigdb_v7.1/msigdb_v7.1_GMTs/indivi_gmt/c5.all.v7.1.symbols.gmt \
+-chip /mnt/data/user_data/xiangyu/programme/gsea/chip/ENSEMBL_mouse_gene.chip \
+-collapse true -mode Max_probe -norm meandiv -nperm 1000 -permute gene_set \
+-rnd_type no_balance -scoring_scheme weighted -rpt_label my_analysis \
+-metric Signal2Noise -sort real -order descending -include_only_symbols true \
+-make_sets true -median false -num 100 -plot_top_x 50 -rnd_seed timestamp \
+-save_rnd_lists false -set_max 500 -set_min 15 -zip_report false \
+-out ./ckit_shA_ren_c5 -gui false
 
 
+#本地GSEA结果导入可视化
+geneList <- fread("/mnt/data/user_data/yiman/workshop/RNAseq/Abcb8_zjn/figure/ckit_sh_ren.ckit_sh_ren_collapsed_to_symbols.rnk")
+geneList <- as.data.frame(geneList)
+geneList_ <- geneList$V2
+names(geneList_) <- geneList$V1
 
+all_GSEA_GMT <- read.gmt("/mnt/data/user_data/yiman/workshop/RNAseq_ref/GSEA/msigdb_v2022.1.Hs_files_to_download_locally/msigdb_v2022.1.Hs_GMTs/msigdb.v2022.1.Hs.symbols.gmt")
+
+gsea_ABCB8 <- GSEA(geneList_,  #待富集的基因列表
+    TERM2GENE = all_GSEA_GMT,  #基因集
+    pvalueCutoff = 0.05,  #指定 p.adjust 值阈值（可指定 1 以输出全部）
+    pAdjustMethod = 'BH',
+    nPerm = 10000,
+    minGSSize = 15,
+     by = "fgsea")  #指定 p 值校正方法
+
+gsea_df <- gsea_ABCB8@result
+filtered_gsea_df <- gsea_df[grep("HEMATOPOIETIC",gsea_df$ID), ]
+filtered_gsea_results <- gsea_ABCB8
+filtered_gsea_results@result <- filtered_gsea_df
+
+library(enrichplot)
+unique(filtered_gsea_df$ID)
+filtered_gsea_df[c(4,5,7,8),]
+
+p5 <- gseaplot2(filtered_gsea_results, 
+                geneSetID = c(4,5), #或直接输入基因集ID向量名，如c("hsa04610","hsa00260")
+                color = c("#39a26d","#36638f"),
+                pvalue_table = TRUE,
+                ES_geom = "line",
+                rel_heights = c(1.5, 0.5, 1), #子图高度
+                subplots = 1:2
+)
+
+ggsave(width=6,height=4,"/mnt/data/user_data/yiman/workshop/RNAseq/Abcb8_zjn/github_code/gseaplot.GSEA.shA.all.vs.shR.Fig1.png")
+
+
+```
+<img src="./Fig1_images/gseaplot.GSEA.shA.all.vs.shR.Fig1.png" alt="Fig1K" width="500" />
 
