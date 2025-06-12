@@ -35,7 +35,7 @@ library(reshape2)
 plan("multiprocess", workers = 10)
 options(future.globals.maxSize = 200000 * 1024^2) # for 200 Gb RAM
 ```
-#### Fig1F
+#### Fig1E
 ```
 bao_myeloid <- mcreadRDS("/mnt/data/user_data/yiman/project/zjn_abcb8_screening/Bao.patient.normal.BM.myeloid.final.rds", mc.cores = 20)
 p <- DimPlot(object = bao_myeloid, reduction = "umap",repel=TRUE,label=FALSE,group.by="CellType",raster = FALSE) + ggtitle("Normal_BM")
@@ -44,7 +44,7 @@ ggsave(height=3.5,width=5,"/mnt/data/user_data/yiman/project/zjn_abcb8_screening
 ```
 <img src="./Fig1_images/Dimplot_Bao.patient.normal.BM.myeloid.final.png" alt="Fig1F_Dimplot" width="500" />
 
-#### Fig1G
+#### Fig1F
 ```
 
 data_tmp <- as.matrix(GetAssayData(object = bao_myeloid, slot = "counts",assay="RNA"))
@@ -107,7 +107,7 @@ ggsave(height=5,width=5,"/mnt/data/user_data/yiman/project/zjn_abcb8_screening/g
 <img src="./Fig1_images/Cyto.ABCB8.Bao.patient.normal.BM.myeloid.70.seed6.png" alt="Fig1G" width="500" />
 
 
-#### Fig1H
+#### Fig1G
 
 ```
 table(bao_myeloid$CellType)
@@ -146,7 +146,7 @@ ggsave(height=4,width=4,"/mnt/data/user_data/yiman/project/zjn_abcb8_screening/g
 ```
 <img src="./Fig1_images/boxplot.Bao.patient.normal.BM.myeloid.ABCB8.20.png" alt="Fig1H" width="500" />
 
-#### Fig1J
+#### Fig1K
 
 
 ```
@@ -262,7 +262,7 @@ ggsave("/mnt/data/user_data/yiman/workshop/RNAseq/Abcb8_zjn/github_code/barplot.
 ```
 <img src="./Fig1_images/barplot.GO.shA_vs_shR.Fig1.png" alt="Fig1J" width="500" />
 
-#### Fig1K
+#### Fig1L
 
 ```
 ckit_sh_ren_gct <- res_ckit_sh_ren_all[,c(10:18,25)]
@@ -296,7 +296,6 @@ java -cp /mnt/data/user_data/xiangyu/programme/gsea/gsea-3.0.jar -Xmx20480m xtoo
 -out ./ckit_shA_ren_c5 -gui false
 
 
-#本地GSEA结果导入可视化
 geneList <- fread("/mnt/data/user_data/yiman/workshop/RNAseq/Abcb8_zjn/figure/ckit_sh_ren.ckit_sh_ren_collapsed_to_symbols.rnk")
 geneList <- as.data.frame(geneList)
 geneList_ <- geneList$V2
